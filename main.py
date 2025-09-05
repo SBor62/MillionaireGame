@@ -12,16 +12,8 @@ class MillionaireApp:
     """Главный класс приложения, управляющий окнами."""
 
     def __init__(self, root):
-        self.root = root
-        self.root.millionaire_app = self
-
-        # Устанавливаем размеры окна
-        self.width = WINDOW_WIDTH
-        self.height = WINDOW_HEIGHT
-        self.root.geometry(f"{self.width}x{self.height}")
-
-        # Центрируем окно
-        self.show_center_window()
+        self.sound_manager = SoundManager()
+        self.theme_manager = ThemeManager()
 
         # Инициализация компонентов
         self.settings = Settings()
@@ -32,10 +24,18 @@ class MillionaireApp:
         self.bg_manager = None
         self.theme_manager = ThemeManager()
 
+        self.root = root
+        self.root.millionaire_app = self
+        self.show_video_intro()
+
+        self.width = None
+        self.height = None
+
+        # Центрируем окно
+        self.show_center_window()
+
         # Устанавливаем громкость из настроек при запуске
         self.sound_manager.set_music_volume(self.settings.music_volume)
-
-        self.show_video_intro()
 
         self.root.overrideredirect(True)
         self.show_main_menu()
@@ -59,6 +59,10 @@ class MillionaireApp:
         self.root.update_idletasks()
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
+
+        self.width = WINDOW_WIDTH
+        self.height = WINDOW_HEIGHT
+        self.root.geometry(f"{self.width}x{self.height}")
 
         x = (screen_width - self.width) // 2
         y = (screen_height - self.height) // 3
@@ -196,40 +200,35 @@ class MillionaireApp:
         self.sound_manager.stop_all_sounds()
         self.clear_frame()
 
-        # Рассчитываем выигрыш на основе номера набора
-        current_set = self.game.question_manager.current_set_index + 1
-        prize = current_set * 1000000
-
-        print(f"Показ экрана победы. Набор: {current_set}, Приз: {prize}")
+        # используем ОБЩУЮ накопленную сумму
+        total_prize = self.game.get_total_prize()
 
         # Проверяем все ли 7 игр пройдены
-        if current_set >= 7:
+        if self.game.is_final_win():
             try:
                 from ui.final_win_screen import FinalWinScreen
-                self.current_frame = FinalWinScreen(self.root, self, prize)
+                self.current_frame = FinalWinScreen(self.root, self, total_prize)
             except ImportError:
                 # Fallback на обычный экран победы
                 from ui.win_lose_screens import WinScreen
-                self.current_frame = WinScreen(self.root, self, prize)
+                self.current_frame = WinScreen(self.root, self, total_prize)
         else:
             from ui.win_lose_screens import WinScreen
-            self.current_frame = WinScreen(self.root, self, prize)
+            self.current_frame = WinScreen(self.root, self, total_prize)
 
         self.current_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Устанавливаем громкость из настроек
         self.sound_manager.set_music_volume(self.settings.music_volume)
-        # self.sound_manager.play_sound("win", loop=True)
 
     def show_lose_screen(self):
         """Показывает экран проигрыша"""
         self.clear_frame()
         from ui.win_lose_screens import LoseScreen
 
-        prize = self.game.get_last_safe_sum()
-        print(f"Показ экрана проигрыша. Приз: {prize}")
+        # ИСПРАВЛЕНО: При проигрыше игрок получает несгораемую сумму + накопленные выигрыши
+        safe_sum = self.game.get_last_safe_sum()
+        total_prize = self.game.total_accumulated_winnings + safe_sum
 
-        self.current_frame = LoseScreen(self.root, self, prize)
+        self.current_frame = LoseScreen(self.root, self, total_prize)
         self.current_frame.pack(fill=tk.BOTH, expand=True)
 
         # Устанавливаем громкость из настроек
@@ -262,7 +261,6 @@ class MillionaireApp:
             self.current_frame = WinScreen(self.root, self, total_prize)
 
         self.current_frame.pack(fill=tk.BOTH, expand=True)
-        # self.sound_manager.play_sound("win", loop=True)
 
     def show_end_screen(self):
         """Показывает экран конца игры"""

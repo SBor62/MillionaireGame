@@ -41,8 +41,6 @@ class LeaderboardScreen(tk.Frame):
             self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
 
     def create_widgets(self):
-        # Темно-синий фон для элементов и белый текст
-        # bg_color = "#120A2F"  # Темно-синий
         text_color = "white"  # Белый
 
         # Заголовок в первой четверти экрана

@@ -14,6 +14,7 @@ class FinalWinScreen(tk.Frame):
 
         self.canvas = tk.Canvas(self, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.bg_image = None
 
         self.load_background()
         self.create_widgets()
@@ -53,7 +54,7 @@ class FinalWinScreen(tk.Frame):
         # Основной контейнер
         main_frame = tk.Frame(self.canvas, bg="#120A2F", relief="raised", bd=5)
         self.canvas.create_window(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2,
-                                 window=main_frame, anchor="center")
+                                  window=main_frame, anchor="center")
 
         # Заголовок
         title_font = ("Arial", 36, "bold")
@@ -100,10 +101,22 @@ class FinalWinScreen(tk.Frame):
             fg="white",
             width=15,
             height=2,
-            command=self.exit_to_end_screen,
+            command=self.ask_player_name_before_exit,
             cursor="hand2"
         )
         exit_btn.pack(pady=30)
+
+    def ask_player_name_before_exit(self):
+        """Запрашивает имя игрока перед выходом"""
+        from ui.dialog import ask_string
+
+        player_name = ask_string(self.master, "Рекорд", "Введите ваше имя:")
+        if player_name:
+            # Сохраняем рекорд с общей суммой выигрыша
+            self.app.settings.add_record(player_name, self.total_prize)
+
+        # Переходим к экрану завершения
+        self.exit_to_end_screen()
 
     def exit_to_end_screen(self):
         """Переходит к экрану завершения игры"""

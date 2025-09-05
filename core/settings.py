@@ -51,7 +51,6 @@ class Settings:
             }
             with open(self.settings_file, "w", encoding="utf-8") as f:
                 json.dump(settings_data, f, indent=2, ensure_ascii=False)
-            print("Настройки сохранены")
         except Exception as e:
             print(f"Ошибка сохранения настроек: {e}")
 
@@ -89,7 +88,6 @@ class Settings:
             self.records = self.records[:10]
 
         self.save_records()
-        print(f"Добавлен новый рекорд: {name} - {score}")
 
     def save_records(self):
         """Сохраняет рекорды в файл"""
@@ -111,7 +109,6 @@ class Settings:
     def set_music_volume(self, volume):
         """Устанавливает громкость музыки"""
         self.music_volume = max(0.0, min(1.0, volume))
-        print(f"Громкость музыки установлена: {self.music_volume}")
 
     def set_theme(self, theme):
         """Устанавливает тему"""

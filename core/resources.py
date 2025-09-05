@@ -12,7 +12,6 @@ class SoundManager:
     def set_music_volume(self, volume):
         """Устанавливает громкость ТОЛЬКО для фоновой музыки"""
         pygame.mixer.music.set_volume(volume)
-        print(f"Громкость музыки установлена: {volume}")
 
     def get_music_volume(self):
         """Возвращает текущую громкость музыки"""
@@ -47,7 +46,6 @@ class SoundManager:
                 path = Path("assets/sounds") / filename
                 if path.exists():
                     self.sounds[name] = pygame.mixer.Sound(path)
-                    print(f"Звук {filename} загружен успешно")
                 else:
                     print(f"Файл не найден: {path}")
             except Exception as e:
@@ -101,7 +99,6 @@ class SoundManager:
             music_path = Path("assets/sounds") / f"{music_name}.mp3"
             if music_path.exists():
                 pygame.mixer.music.load(music_path)
-                # ВОТ ИСПРАВЛЕНИЕ: Устанавливаем громкость ПЕРЕД воспроизведением
                 pygame.mixer.music.set_volume(volume)
                 if loop:
                     pygame.mixer.music.play(loops=-1)

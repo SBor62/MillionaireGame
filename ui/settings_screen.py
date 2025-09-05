@@ -10,6 +10,8 @@ class SettingsScreen(tk.Frame):
         self.app = app
         self.pack(expand=True, fill=tk.BOTH)
         self.volume_scale = None
+        self.volume_value = None
+        self.bg_image = None
 
         # Используем стандартные размеры окна
         self.master.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
@@ -29,9 +31,7 @@ class SettingsScreen(tk.Frame):
 
         # Пробуем разные пути к фону
         possible_paths = [
-            "assets/backgrounds/menu_dark.png",
-            "assets/backgrounds/menu_light.png",
-            "assets/backgrounds/record.png"
+            "assets/backgrounds/setting.png"
         ]
 
         for image_path in possible_paths:
@@ -46,7 +46,6 @@ class SettingsScreen(tk.Frame):
                     img = img.resize((width, height), Image.Resampling.LANCZOS)
                     self.bg_image = ImageTk.PhotoImage(img)
                     self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
-                    print(f"Фон настроек загружен: {image_path}")
 
                     # Устанавливаем размер Canvas под фон
                     self.canvas.config(width=width, height=height)
@@ -57,14 +56,14 @@ class SettingsScreen(tk.Frame):
 
         # Fallback - цветной фон
         self.canvas.configure(bg="#2c3e50")
-        print("Используется fallback фон")
 
     def create_widgets(self):
         """Создаёт элементы интерфейса с правильными отступами"""
         # Основной контейнер с отступами
         main_container = tk.Frame(self.canvas, bg="#2c3e50", padx=50, pady=40)
         self.canvas.create_window(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2,
-                                 window=main_container, anchor="center")
+
+                                  window=main_container, anchor="center")
 
         # Заголовок с отступом
         title_font = tkfont.Font(family="Helvetica", size=32, weight="bold")
@@ -169,7 +168,6 @@ class SettingsScreen(tk.Frame):
         self.volume_value.config(text=f"{int(val)}%")
         # Немедленно сохраняем
         self.app.settings.save_settings()
-        print(f"Громкость обновлена: {volume}")
 
     def switch_theme(self):
         """Смена темы"""
@@ -179,6 +177,5 @@ class SettingsScreen(tk.Frame):
         """Возврат в главное меню"""
         # СОХРАНЯЕМ настройки перед выходом!
         self.app.settings.save_settings()
-        print("Настройки сохранены при выходе из настроек")
         self.destroy()
         self.app.show_main_menu()

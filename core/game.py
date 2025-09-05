@@ -7,8 +7,8 @@ class Game:
         self.current_question = None
         self.score = 0
         self.current_level = 1
-        self.total_wins = 0
-        self.total_prize = 0
+        self.total_accumulated_winnings = 0  # Накопленная сумма за все игры
+        self.current_game_winnings = 0  # Выигрыш в текущей игре
         self.used_hints = {
             "50_50": False,
             "call_friend": False,
@@ -25,8 +25,8 @@ class Game:
 
     def start_new_game(self, reset_questions=True, is_new_session=True):
         """Начинает новую игру"""
-        # Сбрасываем только уровень и подсказки, НО НЕ набор вопросов!
         self.current_level = 1
+        self.current_game_winnings = 0  # Сбрасываем выигрыш текущей игры
         self.used_hints = {
             "50_50": False,
             "call_friend": False,
@@ -35,26 +35,26 @@ class Game:
 
         if is_new_session:
             # Полный сброс только для новой сессии
-            self.total_wins = 0
-            self.total_prize = 0
+            self.total_accumulated_winnings = 0
             self.question_manager.reset_to_first_set()
-            print("Новая игровая сессия")
         else:
-            # Продолжение - сохраняем прогресс наборов
-            print(f"Продолжение игры. Текущий набор: {self.question_manager.current_set_index + 1}")
+            # Продолжение - сохраняем накопленную сумму
+            print(f"Продолжение игры. Накопленная сумма: {self.total_accumulated_winnings}")
 
         if reset_questions:
             self.question_manager.reset_current_set()
 
     def handle_level_completion(self):
-        """Обрабатывает завершение уровня (15 вопросов) и возвращает True если есть следующий набор"""
-        self.total_wins += 1
-        self.total_prize += 1000000
+        """Обрабатывает завершение уровня (15 вопросов)"""
+
+        current_game_prize = self.prize_levels[15]  # 1 000 000 за победу
+        self.total_accumulated_winnings += current_game_prize
 
         # Пытаемся перейти к следующему набору
         if self.question_manager.load_next_set():
-            print(f"Успешно перешли к набору {self.question_manager.current_set_index + 1}")
+
             self.current_level = 1
+            self.current_game_winnings = 0  # Сбрасываем для новой игры
             return True
         else:
             print("Все наборы пройдены - финальная победа!")
@@ -71,8 +71,15 @@ class Game:
             return False
         return self.current_question["correct_answer"] == answer_index
 
+    def add_current_prize(self):
+        """Добавляет текущий приз к выигрышу игры"""
+        current_prize = self.prize_levels.get(self.current_level, 0)
+        self.current_game_winnings += current_prize
+
+        return current_prize
+
     def get_guaranteed_prize(self):
-        """Возвращает несгораемую сумму"""
+        """Возвращает несгораемую сумму для ТЕКУЩЕЙ игры"""
         if self.current_level >= 10:
             return self.prize_levels[10]
         elif self.current_level >= 5:
@@ -80,7 +87,7 @@ class Game:
         return 0
 
     def get_last_safe_sum(self):
-        """Возвращает последнюю несгораемую сумму"""
+        """Возвращает последнюю несгораемую сумму для ТЕКУЩЕЙ игры"""
         return self.get_guaranteed_prize()
 
     def get_current_question_set(self):
@@ -88,12 +95,21 @@ class Game:
         return self.question_manager.current_set_index + 1
 
     def get_total_prize(self):
-        """Возвращает общий выигрыш за все пройденные наборы"""
-        return self.total_prize
+        """Возвращает ОБЩИЙ выигрыш (накопленный + текущая игра)"""
+
+        if self.current_level > 15:  # Если игра завершена
+            return self.total_accumulated_winnings + self.prize_levels[15]
+        else:
+            # При проигрыше - накопленное + несгораемая сумма текущей игры
+            return self.total_accumulated_winnings + self.get_last_safe_sum()
 
     def get_current_set_prize(self):
         """Возвращает выигрыш за текущий набор"""
-        return self.get_current_question_set() * 1000000
+
+        if self.current_level > 15:
+            return self.prize_levels[15]
+        else:
+            return self.current_game_winnings
 
     def advance_to_next_set(self):
         """Переходит к следующему набору вопросов (альтернативный метод)"""

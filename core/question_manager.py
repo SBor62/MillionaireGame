@@ -23,8 +23,6 @@ class QuestionManager:
             self.questions_dir / "set7.json"
         ]
 
-        print("Загрузка наборов вопросов в строгом порядке:")
-
         for file in question_files:
             try:
                 if file.exists():
@@ -45,8 +43,6 @@ class QuestionManager:
 
             except Exception as e:
                 print(f"  ❌ Ошибка загрузки {file.name}: {e}")
-
-        print(f"Всего загружено наборов: {len(self.question_sets)}")
 
         # Загружаем первый набор
         if self.question_sets:
@@ -73,7 +69,6 @@ class QuestionManager:
         if self.current_set_index < len(self.question_sets) - 1:
             self.current_set_index += 1
             self.current_questions = self.question_sets[self.current_set_index]['questions'].copy()
-            print(f"Переход к набору {self.current_set_index + 1}: {self.get_current_set_name()}")
             return True
         return False
 
@@ -82,13 +77,11 @@ class QuestionManager:
         self.current_set_index = 0
         if self.question_sets:
             self.current_questions = self.question_sets[0]['questions'].copy()
-        print("Сброс к первому набору вопросов")
 
     def reset_current_set(self):
         """Сбрасывает текущий набор вопросов (для переигрывания)"""
         if self.question_sets and self.current_set_index < len(self.question_sets):
             self.current_questions = self.question_sets[self.current_set_index]['questions'].copy()
-            print(f"Сброс текущего набора: {self.get_current_set_name()}")
 
     def get_total_sets(self):
         """Возвращает общее количество наборов вопросов"""

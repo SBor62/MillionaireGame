@@ -46,7 +46,6 @@ class BackgroundManager:
             if width > 1 and height > 1:
                 # Загружаем оригинальное изображение
                 original_img = Image.open(self.current_image_path)
-                orig_width, orig_height = original_img.size
 
                 # Сохраняем пропорции (растягиваем с заполнением)
                 img = original_img.resize((width, height), Image.Resampling.LANCZOS)
@@ -84,8 +83,6 @@ class BackgroundManager:
         # Сначала очищаем предыдущий фон
         self.clear_background()
 
-        print(f"BackgroundManager: загружаем {image_path}")
-
         try:
             # Находим файл изображения
             actual_path = self._find_image_file(image_path)
@@ -112,8 +109,6 @@ class BackgroundManager:
             self.bg_label = tk.Label(self.root, image=self.bg_image)
             self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
             self.bg_label.lower()  # Отправляем на задний план
-
-            print(f"Фон установлен: {actual_path}")
 
         except FileNotFoundError as e:
             print(f"Ошибка: {e}")

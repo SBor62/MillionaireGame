@@ -76,7 +76,6 @@ class MainMenu(tk.Frame):
         normal_color = self.get_theme_color('btn')
         hover_color = self._darken_color(normal_color, 0.2)
         active_color = self._darken_color(normal_color, 0.3)
-        fg_color = self.get_theme_color('btn_text')  # ← БЕЛЫЙ текст
         exit_color = "#e74c3c"
         exit_hover = "#c0392b"
         exit_active = "#a33226"

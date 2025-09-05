@@ -66,7 +66,7 @@ class WinScreen(tk.Frame):
             pady=20
         ).pack()
 
-        # Выигрыш - ИСПРАВЛЕНО: используем переданный prize
+        # Выигрыш - используем переданный prize (уже правильный)
         prize_font = tkfont.Font(size=26)
         tk.Label(
             main_frame,
@@ -94,7 +94,7 @@ class WinScreen(tk.Frame):
 
         tk.Button(
             btn_frame,
-            text="НОВАЯ ИГРА",
+            text="ПРОДОЛЖИТЬ",
             font=tkfont.Font(size=22, weight="bold"),
             bg="#2ecc71",
             fg="white",
@@ -143,9 +143,9 @@ class WinScreen(tk.Frame):
         player_name = ask_string(self.master, "Рекорд", "Введите ваше имя:")
 
         if player_name:
-            current_set = self.app.game.question_manager.current_set_index
-            prize = current_set * 1000000
-            self.app.settings.add_record(player_name, prize)
+            # Используем ОБЩУЮ накопленную сумму для записи рекорда
+            total_prize = self.app.game.get_total_prize()
+            self.app.settings.add_record(player_name, total_prize)
 
         # Выполняем callback после диалога
         callback()
@@ -208,16 +208,26 @@ class LoseScreen(tk.Frame):
             pady=20
         ).pack()
 
-        # Используем переданный prize
+        # Используем переданный prize (несгораемую сумму)
         prize_font = tkfont.Font(size=26)
-        tk.Label(
-            main_frame,
-            text=f"Ваш выигрыш: {self.prize:,} руб.",
-            font=prize_font,
-            fg=text_color,
-            bg=bg_color,
-            pady=15
-        ).pack()
+        if self.prize > 0:
+            tk.Label(
+                main_frame,
+                text=f"Ваш выигрыш: {self.prize:,} руб.",
+                font=prize_font,
+                fg=text_color,
+                bg=bg_color,
+                pady=15
+            ).pack()
+        else:
+            tk.Label(
+                main_frame,
+                text="ВЫ НИЧЕГО НЕ ВЫИГРАЛИ",
+                font=prize_font,
+                fg=text_color,
+                bg=bg_color,
+                pady=15
+            ).pack()
 
         question_font = tkfont.Font(size=24)
         tk.Label(
@@ -234,7 +244,7 @@ class LoseScreen(tk.Frame):
 
         tk.Button(
             btn_frame,
-            text="ПОВТОРИТЬ",
+            text="ПЕРЕИГРАТЬ",
             font=tkfont.Font(size=22, weight="bold"),
             bg="#2ecc71",
             fg="white",
@@ -258,6 +268,9 @@ class LoseScreen(tk.Frame):
         """Повторяет игру с ТЕМ ЖЕ набором вопросов"""
         self.app.sound_manager.stop_all_sounds()
 
+        # Сбрасываем выигрыш текущей игры при переигрыше
+        self.app.game.current_game_winnings = 0
+
         # НЕ сбрасываем набор вопросов, только перезагружаем текущий
         self.app.game.question_manager.reset_current_set()
         self.app.game.current_level = 1
@@ -274,12 +287,12 @@ class LoseScreen(tk.Frame):
         """Возвращает в главное меню с сохранением выигрыша"""
         self.app.sound_manager.stop_all_sounds()
 
-        # Сохраняем выигрыш за пройденные наборы
-        current_set = self.app.game.question_manager.current_set_index
-        prize = current_set * 1000000
+        # ИСПРАВЛЕНИЕ: При проигрыше игрок получает последнюю несгораемую сумму
+        safe_sum = self.app.game.get_last_safe_sum()
+        total_prize = self.app.game.total_accumulated_winnings + safe_sum
 
         # Запрашиваем имя и переходим в меню
-        self.ask_player_name(prize, lambda: self.app.show_main_menu())
+        self.ask_player_name(total_prize, lambda: self.app.show_main_menu())
 
     def ask_player_name(self, prize, callback):
         """Запрашивает имя игрока и выполняет callback"""

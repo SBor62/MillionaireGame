@@ -33,6 +33,8 @@ BACKGROUND_MAP = {
     "game_dark": os.path.join(ASSETS_DIR, "backgrounds", "game_dark.png"),
     "record": os.path.join(ASSETS_DIR, "backgrounds", "record.png"),
     "win": os.path.join(ASSETS_DIR, "backgrounds", "win.png"),
+    "win_out": os.path.join(ASSETS_DIR, "backgrounds", "win_out.png"),
+    "setting": os.path.join(ASSETS_DIR, "backgrounds", "setting.png"),
     "lose": os.path.join(ASSETS_DIR, "backgrounds", "lose.png"),
     "end": os.path.join(ASSETS_DIR, "backgrounds", "end.png")
 }

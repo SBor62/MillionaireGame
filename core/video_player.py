@@ -1,6 +1,7 @@
 import cv2
 import pygame
 import os
+import sys
 
 
 class VideoPlayer:
@@ -10,28 +11,48 @@ class VideoPlayer:
         pygame.init()
         self.screen = None
 
+    def get_resource_path(self, relative_path):
+        """Получает правильный путь к ресурсам для PyInstaller"""
+        try:
+            # PyInstaller создает временную папку в _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
+
     def play(self, video_path, audio_path="assets/audio/ascreen.mp3", exit_on_click=False):
         """
         Воспроизводит видео и аудио одновременно.
-        :param video_path: путь к видео (.mp4)
-        :param audio_path: путь к аудио (.mp3, .wav)
-        :param exit_on_click: выход по клику
         """
-        # Проверяем видео
+        # Используем правильные пути для PyInstaller
+        video_path = self.get_resource_path(video_path)
+        audio_path = self.get_resource_path(audio_path)
+
+        # Проверяем существование файлов
         if not os.path.exists(video_path):
-            raise FileNotFoundError(f"Видео не найдено: {video_path}")
+            print(f"❌ Видео не найдено: {video_path}")
+            return False
+
+        if not os.path.exists(audio_path):
+            print(f"❌ Аудио не найдено: {audio_path}")
+            # Попробуем альтернативный путь
+            audio_path = self.get_resource_path("assets/sounds/menu.mp3")
+            print(f"Пробую альтернативное аудио: {audio_path}")
+            if not os.path.exists(audio_path):
+                print(f"❌ Альтернативное аудио тоже не найдено!")
+                return False
 
         # Открываем видео
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            raise RuntimeError(f"Не удалось открыть видео: {video_path}")
+            print(f"Не удалось открыть видео: {video_path}")
+            return False
 
-        # Получаем FPS и размеры
+        # Получаем FPS
         fps = cap.get(cv2.CAP_PROP_FPS)
         if fps == 0:
-            fps = 24  # Подстраховка
-        # width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = 24
 
         # Настройка pygame
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -42,24 +63,22 @@ class VideoPlayer:
         if os.path.exists(audio_path):
             try:
                 pygame.mixer.music.load(audio_path)
-                pygame.mixer.music.play()  # Запускаем аудио
+                pygame.mixer.music.play()
             except Exception as e:
-                print(f"[Предупреждение] Не удалось воспроизвести аудио: {e}")
+                print(f"Не удалось воспроизвести аудио: {e}")
         else:
-            print(f"[Предупреждение] Аудиофайл не найден: {audio_path}")
+            print(f"Аудиофайл не найден: {audio_path}")
 
         # Главный цикл воспроизведения
         running = True
         while running:
-            # Читаем кадр
             ret, frame = cap.read()
             if not ret:
-                break  # Конец видео
+                break
 
             # Конвертируем BGR → RGB, транспонируем под pygame
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)    # BGR → RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = cv2.transpose(frame)
-            # frame = cv2.flip(frame, 0)  # Поворот на 90° и отражение
             surface = pygame.surfarray.make_surface(frame)
 
             # Масштабируем на весь экран
@@ -72,12 +91,7 @@ class VideoPlayer:
 
             # Обработка событий
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                if exit_on_click and event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type in [pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN]:
                     running = False
 
             clock.tick(fps)
@@ -85,4 +99,5 @@ class VideoPlayer:
         # Очистка
         cap.release()
         pygame.mixer.music.stop()
-        pygame.display.quit()  # Закрываем окно pygame
+        pygame.display.quit()
+        return True

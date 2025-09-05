@@ -172,6 +172,9 @@ class GameScreen(tk.Frame):
         is_correct = (answer_index == correct_index)
 
         if is_correct:
+            # Увеличиваем выигрыш текущей игры
+            prize_won = self.game.add_current_prize()
+
             # Останавливаем фоновую музыку для правильного ответа
             self.app.sound_manager.stop_all_sounds()
             self.app.sound_manager.play_sound("correct")
@@ -259,6 +262,5 @@ class GameScreen(tk.Frame):
         """Возвращает в главное меню"""
         # Сохраняем настройки перед выходом из игры
         self.app.settings.save_settings()
-        print("Настройки сохранены при выходе из игры")
         self.app.sound_manager.stop_all_sounds()
         self.app.show_main_menu()

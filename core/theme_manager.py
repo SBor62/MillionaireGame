@@ -5,7 +5,7 @@ class ThemeManager:
     def __init__(self):
         self.themes = {}
         self.current_theme = "dark"
-        # self.load_themes()     # ЗАКОММЕНТИРУЕМ эту строку...
+
         self.define_themes()     # ...и заменим на этот метод
 
     def define_themes(self):
